@@ -1,0 +1,559 @@
+# College Project Repository & Discovery System
+## DBMS Course Project — Project Specification v1.0
+
+### 1. Project Overview
+
+The College Project Repository & Discovery System is a database-centric application for maintaining a structured repository of student projects completed or proposed within the college, particularly EDI/AACP and similar academic projects.
+
+The main problem addressed is project duplication and lack of discoverability. Before proposing a new project, a student should be able to search the repository and inspect previously completed/proposed projects that fall within the same or related scope.
+
+Example:
+
+A student searches for `theft`.
+
+The system should be able to return projects such as:
+- Power Theft Detection
+- CCTV-Based Theft Detection
+- Smart Home Intrusion/Protection
+- Other projects explicitly associated with theft through their stored tags, domains, technologies, or project information.
+
+The system must remain a PURE DBMS project. AI, NLP, ML, deep learning, embeddings, vector databases, and LLM-based semantic search are explicitly out of scope.
+
+---
+
+## 2. Primary Objective
+
+Build a properly normalized, relational, searchable college project database with a simple web interface.
+
+The database—not the frontend—is the core of the project.
+
+The system should demonstrate:
+- ER modeling
+- Relational schema design
+- Referential integrity and constraints
+- SQL and advanced queries
+- Joins and set operations
+- Views
+- Subqueries
+- Indexing
+- Stored procedures/functions
+- Triggers
+- Roles and privileges
+- Normalization
+- Transactions
+- Query optimization/performance comparison
+
+These areas directly align with the CI2012 DBMS syllabus.
+
+---
+
+## 3. Core Users
+
+### Student
+Students should be able to:
+- Search projects
+- Filter projects
+- View project details
+- Discover projects sharing tags/domains/technologies
+- Check whether an idea has already been explored
+
+### Faculty
+Faculty should be able to:
+- View projects
+- Review projects associated with their department
+- View projects they mentor
+- Update appropriate project information/status
+
+### Administrator
+Administrators should be able to:
+- Add/update/archive projects
+- Manage students
+- Manage faculty
+- Manage domains
+- Manage tags
+- Manage technologies
+- Assign students to projects
+- Assign faculty mentors
+- Manage roles/access
+
+---
+
+## 4. Main Functional Modules
+
+### Module A — Project Repository
+Store structured information about every project.
+
+Candidate information:
+- Project ID
+- Project title
+- Description
+- Academic year
+- Project type (EDI/AACP/etc.)
+- Department
+- Domain
+- Status
+- Faculty mentor
+- Team members
+- Technologies
+- Tags
+- Optional project outcome/details
+
+### Module B — Project Search & Discovery
+This is the primary student-facing feature.
+
+Users should be able to search by:
+- Keyword
+- Tag
+- Domain
+- Technology
+- Project type
+- Academic year
+- Department
+
+The search must be implemented through relational database queries.
+
+### Module C — Tag-Based Discovery
+Projects and tags should have a many-to-many relationship.
+
+Example:
+
+Power Theft Detection
+→ theft
+→ electricity
+→ energy
+→ IoT
+→ security
+
+CCTV Theft Detection
+→ theft
+→ CCTV
+→ camera
+→ security
+
+Searching for `theft` can therefore retrieve both projects even when the exact word is not present in the project title.
+
+The tag structure should be normalized rather than storing comma-separated tags in one column.
+
+### Module D — Related/Similar Project Discovery
+The system may provide a deterministic "related projects" result.
+
+For example, if a project/search contains:
+`theft`, `electricity`, `IoT`
+
+then existing projects can be ranked according to the number of matching stored tags/attributes.
+
+This is NOT AI similarity. It is database-defined matching/ranking.
+
+### Module E — Administration
+Provide controlled CRUD operations for authorized users.
+
+### Module F — Reports / Database Views
+Useful reports can include:
+- Projects by year
+- Projects by domain
+- Projects by department
+- EDI vs AACP project counts
+- Faculty-wise projects
+- Most-used technologies
+- Most-used tags
+- Projects involving a particular domain
+
+These can be implemented using SQL aggregation and views.
+
+### Module G — Performance & Query Optimization
+Use a sufficiently large dataset to demonstrate database performance.
+
+Example:
+1. Execute a search without the relevant index.
+2. Create the appropriate index.
+3. Execute the same query.
+4. Compare execution time/query plan.
+
+This directly supports the syllabus requirement around indexing and query optimization.
+
+---
+
+## 5. Proposed Relational Structure
+
+This is a starting design, not yet the final schema.
+
+Likely entities:
+
+- Student
+- Project
+- Faculty
+- Department
+- ProjectType
+- Domain
+- Tag
+- Technology
+
+Likely relationship tables:
+
+- ProjectStudent
+- ProjectTag
+- ProjectTechnology
+
+Possible additional entities may be introduced after ER modeling and normalization.
+
+Conceptually:
+
+Student
+  |
+  | participates in
+  v
+Project
+  |------ belongs to ------> Domain
+  |------ has -------------> ProjectType
+  |------ belongs to -------> Department
+  |------ mentored by ------> Faculty
+  |
+  | M:N
+  +------ ProjectTag ------> Tag
+  |
+  | M:N
+  +------ ProjectTechnology -> Technology
+
+The final ER diagram must be designed before implementation.
+
+---
+
+## 6. Search Philosophy
+
+The system should NOT use AI/NLP.
+
+Search should rely on structured relational information.
+
+A query such as:
+
+`theft`
+
+can match:
+- Project tags
+- Project title
+- Project description
+- Domain/category where appropriate
+
+A multi-keyword search can use deterministic database logic.
+
+A possible relevance model is:
+
+- Exact tag match → high weight
+- Title match → high weight
+- Domain match → medium weight
+- Description match → lower weight
+- Number of matching tags → ranking factor
+
+The exact scoring mechanism should be finalized during database/query design.
+
+The important principle is that the rules are explicit SQL/database logic, not machine learning.
+
+---
+
+## 7. User Interface
+
+A simple web application is required/strongly recommended because students need an interface through which they can search and inspect the database.
+
+However, the UI should remain thin.
+
+### Student interface
+Main screen:
+- Search bar
+- Filters
+- Search results
+- Project detail page
+- Related projects
+
+### Admin interface
+- Project management
+- Student/faculty management
+- Tag/domain/technology management
+- Reports
+- Basic statistics
+
+A visually impressive dashboard is NOT the primary objective.
+
+---
+
+## 8. Recommended Technology Direction
+
+### Database
+Recommended starting choice: MySQL.
+
+Reason:
+- Explicitly supported by the course practical for the two-tier application.
+- Well suited to the relational requirements of this project.
+- Supports the SQL, constraints, views, indexes, procedures, triggers, transactions, roles/privileges and other concepts we need.
+
+PostgreSQL can be reconsidered later if there is a specific technical reason, but MySQL is the safer syllabus-aligned default.
+
+### Backend
+Use a lightweight backend such as:
+- Python
+- Java
+- PHP
+
+The exact backend should be chosen based on team familiarity.
+
+### Frontend
+A simple HTML/CSS/JavaScript interface is sufficient.
+A frontend framework may be used if the team is comfortable with it, but it should not dominate project development.
+
+---
+
+## 9. DBMS Syllabus Mapping
+
+### Unit 1 — DBMS & Data Models
+Application:
+- Database architecture
+- Users and roles
+- Relational data model
+- Database-backed application structure
+
+### Unit 2 — ER Modeling & Relational Model
+Application:
+- ER diagram
+- Entities/attributes/relationships
+- Cardinalities
+- Strong/weak entities where justified
+- Generalization/specialization where justified
+- Relational schema
+- Foreign keys
+- Referential integrity
+- Relational algebra representations of important queries
+- Joins
+
+### Unit 3 — SQL & PL/SQL
+Application:
+- DDL
+- DML
+- DCL
+- DTL
+- Search queries
+- Joins
+- Set operations
+- GROUP BY / HAVING / ORDER BY
+- Subqueries
+- Views
+- Indexes
+- Stored procedures
+- Functions
+- Triggers
+- Roles and privileges
+
+Note: the course syllabus labels this unit "SQL and PLSQL"; the exact implementation language/features should follow what the selected DBMS supports and what is expected by the faculty.
+
+### Unit 4 — Dependencies & Normalization
+Application:
+- Identify functional dependencies
+- Analyze possible update/insert/delete anomalies
+- Normalize the schema
+- Demonstrate 1NF, 2NF, 3NF, BCNF and, where applicable, 4NF
+- Explain lossless decomposition and dependency preservation
+
+### Unit 5 — Transactions & Query Optimization
+Application:
+- Transaction-based project updates
+- ACID demonstration
+- Concurrency considerations
+- Indexing
+- Query execution/performance comparison
+- Query optimization
+- Join strategy discussion
+
+### Unit 6 — NoSQL
+This project is fundamentally relational.
+
+A MongoDB component should NOT be forced into the core system merely to claim NoSQL usage.
+
+If required for course coverage, a small comparative/experimental MongoDB component can be created separately to demonstrate:
+- Document representation
+- CRUD
+- Indexing
+- Aggregation
+- RDBMS vs MongoDB comparison
+
+---
+
+## 10. Important Non-Goals
+
+The project must NOT become:
+- An AI project
+- An NLP project
+- An ML project
+- A recommendation engine based on machine learning
+- A vector search system
+- An LLM application
+- A deep-learning application
+- A generic CRUD application with no meaningful DBMS depth
+
+No embeddings, semantic models, vector similarity, or external AI APIs should be required.
+
+---
+
+## 11. Database-Centric Demonstrations
+
+The final project should contain demonstrable database operations, not just application screenshots.
+
+Recommended demonstrations:
+
+1. ER diagram → relational schema
+2. Normalization process
+3. Complex multi-table search query
+4. Many-to-many tag search
+5. View creation
+6. Stored procedure
+7. Stored function
+8. Trigger + audit/log table
+9. Role-based access
+10. Transaction/rollback demonstration
+11. Index before/after comparison
+12. Query optimization/execution-plan discussion
+13. Optional MongoDB comparison
+
+---
+
+## 12. Example End-to-End Scenario
+
+A new student has an idea:
+
+"Detect electricity theft using IoT."
+
+The student:
+1. Opens the repository.
+2. Searches `electricity theft IoT`.
+3. Applies filters if required.
+4. Gets existing projects.
+5. Opens project details.
+6. Sees tags, domain, year, team, faculty, and technologies.
+7. Reviews related projects based on shared stored attributes.
+8. Uses the information to determine whether their proposed idea is sufficiently different.
+
+If the student proceeds with a project, an authorized faculty/admin user can add it to the repository.
+
+---
+
+## 13. Development Order
+
+Do NOT begin by building the frontend.
+
+Recommended order:
+
+1. Finalize problem statement
+2. Finalize requirements
+3. Identify entities and relationships
+4. Create ER diagram
+5. Identify functional dependencies
+6. Normalize schema
+7. Convert ER model to relational schema
+8. Define constraints
+9. Create database
+10. Populate realistic sample data
+11. Implement core SQL queries
+12. Implement views/procedures/functions/triggers
+13. Implement search and filtering
+14. Add indexes
+15. Perform query optimization/performance tests
+16. Build backend API
+17. Build simple frontend
+18. Add authentication/roles
+19. Testing
+20. Documentation and presentation
+
+---
+
+## 14. Suggested Team Work Split
+
+### Member 1 — Database Architecture
+- Requirements
+- ER diagram
+- Relational schema
+- Functional dependencies
+- Normalization
+
+### Member 2 — SQL / DBMS Features
+- Tables/constraints
+- Complex queries
+- Views
+- Procedures/functions
+- Triggers
+- Roles/privileges
+
+### Member 3 — Search & Performance
+- Search queries
+- Tag-based discovery
+- Deterministic ranking
+- Indexing
+- Query optimization
+- Performance experiments
+
+### Member 4 — Application Layer
+- Backend API
+- Frontend
+- Student interface
+- Admin interface
+- Integration
+
+All members should understand the complete database design for the viva.
+
+---
+
+## 15. Definition of Success
+
+The project should allow a student to answer:
+
+> "Has our college already done something similar to my project idea?"
+
+using a structured relational database.
+
+At the same time, the team should be able to demonstrate:
+
+> "Here is our ER model, here is how we normalized it, here are our relationships and constraints, here are our SQL queries, here is our indexing optimization, here are our transactions/triggers/procedures, and here is how the application uses the database."
+
+That is the core identity of the project.
+
+---
+
+## 16. Current Status
+
+### Decided
+- Project concept: College Project Repository & Discovery System
+- Primary purpose: Search/discover previous college projects
+- Search approach: Structured relational/SQL-based discovery
+- AI/NLP/ML/DL: Explicitly excluded
+- UI: Simple web interface
+- Database direction: MySQL
+- DBMS depth: Must be substantial
+
+### Not yet finalized
+- Exact ER model
+- Exact tables/attributes
+- Functional dependencies
+- Normalization/decomposition
+- Exact search-ranking SQL
+- Backend framework
+- Frontend framework
+- Authentication implementation
+- Dataset size
+- Final project name
+
+These should be finalized before substantial coding begins.
+
+---
+
+## 17. Guiding Principle
+
+**The database is the project. The web application is the interface.**
+
+Every feature should answer at least one of these questions:
+
+- What DBMS concept does this demonstrate?
+- Why is this data relationship modeled this way?
+- What SQL operation does this feature require?
+- How does normalization improve the design?
+- How does indexing improve performance?
+- How do constraints maintain integrity?
+- How do transactions protect data?
+- How do roles control access?
+
+If a feature does not add meaningful DBMS value, it should not be added merely for visual complexity.
